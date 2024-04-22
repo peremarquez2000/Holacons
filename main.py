@@ -6,44 +6,126 @@ def valores_faltantes(df):
     print(df.isnull().sum() / len(df))
 
 
-if __name__ == "__main__":
-    df = pd.read_csv("Sample_Data.csv")
+def limpieza_df(df):
+    df.columns = [
+        "OpCo",
+        "OpCoName",
+        "Subsidiary",
+        "SubsidiaryName",
+        "DepartureAirport",
+        "DepartureAirportName",
+        "DepartureCountry",
+        "DepartureCountryName",
+        "DepartureRegion",
+        "ArrivalAirport",
+        "ArrivalAirportName",
+        "ArrivalCountry",
+        "ArrivalCountryName",
+        "ArrivalRegion",
+        "AircraftType",
+        "Date",
+        "Cabin",
+        "Service",
+        "NPassengers",
+        "NFlights",
+    ]
+    
+    #Cambios el OpCo a Vueling+
+    df.loc[df["OpCoName"]=="Vueling+", 'OpCo'] = "VY+"
+    OpCo = df[
+        [
+            "OpCo",
+            "OpCoName",
+        ]
+    ].drop_duplicates()
 
-    # valores_faltantes(df)
+    Subsidiary = df[
+        [
+            "Subsidiary",
+            "SubsidiaryName",
+        ]
+    ].drop_duplicates()
 
+    Departure = df[
+        [
+            "DepartureAirport",
+            "DepartureAirportName",
+            "DepartureCountry",
+            "DepartureCountryName",
+            "DepartureRegion",
+        ]
+    ].drop_duplicates()
+
+    Arrival = df[
+        [
+            "ArrivalAirport",
+            "ArrivalAirportName",
+            "ArrivalCountry",
+            "ArrivalCountryName",
+            "ArrivalRegion",
+        ]
+    ].drop_duplicates()
+
+    Flights = df[
+        [
+            "OpCo",
+            "Subsidiary",
+            "DepartureAirport",
+            "ArrivalAirport",
+            "AircraftType",
+            "Date",
+            "Cabin",
+            "Service",
+            "NPassengers",
+            "NFlights",
+        ]
+    ]
+
+    return {
+        "OpCo": OpCo,
+        "Subsidiary": Subsidiary,
+        "Departure": Departure,
+        "Arrival": Arrival,
+        "Flights": Flights,
+    }
+
+
+def crear_tablas_DB():
     conn = sqlite3.connect("Sample_data.db")
     cursor = conn.cursor()
 
     cursor.execute(
         """CREATE TABLE OpCo (
-            OpCo varchar PRIMARY KEY,
-            OpCo_Name varchar
+            OpCo TEXT PRIMARY KEY,
+            OpCoName TEXT
         ) 
         """
     )
     cursor.execute(
         """CREATE TABLE Subsidiary (
             Subsidiary varchar PRIMARY KEY,
-            Subsidiary_Name varchar
+            SubsidiaryName varchar
         ) 
         """
     )
     cursor.execute(
         """CREATE TABLE Departure (
-        Departure_Airport varchar PRIMARY KEY,
-        Departure_Airport_Name varchar,
-        Departure_Country varchar,
-        Departure_Region varchar
+            DepartureAirport varchar PRIMARY KEY,
+            DepartureAirportName varchar,
+            DepartureCountry varchar,
+            DepartureCountryName varchar,
+            DepartureRegion varchar
         )
     """
     )
 
     cursor.execute(
         """CREATE TABLE Arrival (
-            Arrival_Airport varchar PRIMARY KEY,
-            Arrival_Airport_Name varchar,
-            Arrival_Country varchar,
-            Arrival_Region varchar
+            ArrivalAirport varchar PRIMARY KEY,
+            ArrivalAirportName varchar,
+            ArrivalCountry varchar,
+            ArrivalCountryName varchar,
+            ArrivalRegion varchar
             )
     """
     )
@@ -53,27 +135,40 @@ if __name__ == "__main__":
         CREATE TABLE Flights (
             OpCo varchar,
             Subsidiary varchar,
-            Departure varchar,
-            Arrival varchar,
-            Aircraft_Type varchar,
+            DepartureAirport varchar,
+            ArrivalAirport varchar,
+            AircraftType varchar,
             Date varchar,
             Cabin varchar,
             Service varchar,
-            "#Passengers" int,
-            "#Flights" int,
-            FOREIGN KEY (Opco) REFERENCES OpCo (OpCo),
+            "NPassengers" int,
+            "NFlights" int,
+            FOREIGN KEY (OpCo) REFERENCES OpCo (OpCo),
             FOREIGN KEY (Subsidiary) REFERENCES Subsidiary (Subsidiary),
-            FOREIGN KEY (Departure) REFERENCES Departure (Departure_Airport),
-            FOREIGN KEY (Arrival) REFERENCES Arrival (Arrival_Airport)
+            FOREIGN KEY (DepartureAirport) REFERENCES Departure (DepartureAirport),
+            FOREIGN KEY (ArrivalAirport) REFERENCES Arrival (ArrivalAirport)
             )
     """
-    )    
-
-    df.to_sql("Sample_data", conn, index=False, if_exists="replace")
+    )
+    conn.commit()
     conn.close()
+
+
+def llenar_tablas_DB(dict):
+    conn = sqlite3.connect("Sample_data.db")
+    for key in dict.keys():
+        dict[key].to_sql(key, conn, if_exists="append", index=False)
+    #dict["OpCo"].to_sql("OpCo", conn, if_exists="append", index=False)
+    conn.close()
+
+
+if __name__ == "__main__":
+    df = pd.read_csv("Sample_Data.csv")
+    df_dict = limpieza_df(df)
+    crear_tablas_DB()
+    llenar_tablas_DB(df_dict)
 
 
 # TODO
 
 # Tendre que definir que tipo de variable es cada columna (int, strng,..)
-# Coge de la base de datos el aricraft, #passengers, #flights para saber si en realidad los datos son de vuelo unico o no
