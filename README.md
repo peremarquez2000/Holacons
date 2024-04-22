@@ -1,5 +1,5 @@
 # HOLACONS
-El programa recibe un fichero "csv" el cual se encarga de limpiar los datos, crea un modelo de datos en la base de datos de SQLite y finalmente muestra por terminal la query pedida en el ejercicio.
+El programa recibe un fichero "csv" el cual se encarga de limpiar. Seguidamente, crea una base de datos *Sample_data.db* con un modelo de datos definido y finalmente, muestra por terminal la query pedida en el ultimo ejercicio.
 
 
 ## Requisitos
@@ -11,7 +11,6 @@ poetry install
 poetry shell
 python main.py
 ```
-
 ## Modelo ER 
 ![alt text](<ER model.png>)
 ## Recomendaciones 
