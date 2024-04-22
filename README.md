@@ -8,7 +8,7 @@ Tener instalado [Poetry](https://python-poetry.org/docs/) (disponible tanto para
 Para ejecutar el codigo ejecuta los siguientes comandos
 ```bash
 poetry install
-poetry shell
+poetry shell --no-root
 python main.py
 ```
 
