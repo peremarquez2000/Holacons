@@ -161,12 +161,23 @@ def llenar_tablas_DB(dict):
     #dict["OpCo"].to_sql("OpCo", conn, if_exists="append", index=False)
     conn.close()
 
+def df_de_sql_script(database, sql_script):
+    conn = sqlite3.connect(database)
+    with open(sql_script, 'r') as f:
+        sql_script = f.read()
+    df = pd.read_sql_query(sql_script, conn)
+    conn.close()
+    return df
+    
+
 
 if __name__ == "__main__":
     df = pd.read_csv("Sample_Data.csv")
     df_dict = limpieza_df(df)
-    crear_tablas_DB()
-    llenar_tablas_DB(df_dict)
+    #crear_tablas_DB()
+    #llenar_tablas_DB(df_dict)
+    df_query=df_de_sql_script("Sample_data.db", "script.sql")
+    print(df_query.head())
 
 
 # TODO
